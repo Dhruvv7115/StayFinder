@@ -6,6 +6,8 @@ export const verifyJWT = async (req, _, next) => {
     const token =
       req.cookies?.accessToken || req.header("Authorization")?.split(" ")[1];
 
+    console.log("token: ", token);
+
     // If the token is not present, throw an error
     if (!token) {
       throw new Error("Unauthorized Request");
@@ -15,6 +17,7 @@ export const verifyJWT = async (req, _, next) => {
 
     const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
+    console.log("decoded token: ", decodedToken);
     if (decodedToken === undefined) {
       throw new Error("Access token is invalid");
     }
@@ -24,6 +27,7 @@ export const verifyJWT = async (req, _, next) => {
     const user = await User.findById(decodedToken?._id).select(
       "-password -refreshToken"
     );
+    console.log("user: ", user)
 
     if (!user) {
       throw new Error("Access token is invalid");
