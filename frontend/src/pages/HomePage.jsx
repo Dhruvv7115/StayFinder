@@ -6,6 +6,7 @@ function HomePage() {
   const [query, setQuery] = useState({ 
     page: 1,
     limit: 20,
+    query: "",
     sortBy: "price",
     sortType: "desc",
   });

@@ -86,6 +86,7 @@ const getAllListings = async (req, res) => {
   const {
     page = 1,
     limit = 10,
+    query = "",
     sortBy = "price",
     sortType = "asc",
     bedrooms,
@@ -102,6 +103,10 @@ const getAllListings = async (req, res) => {
     const aggregateQuery = Listing.aggregate([
       {
         $match: {
+          $or: [
+            { address: { $regex: query, $options: "i" } },
+            { description: { $regex: query, $options: "i" } },
+          ],
           availability: true,
           ...(bedrooms ? { bedrooms: parseInt(bedrooms) } : {}),
           ...(washrooms ? { bathrooms: parseInt(washrooms) } : {}),
