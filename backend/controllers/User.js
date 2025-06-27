@@ -248,7 +248,7 @@ const loginUser = async (req, res) => {
     // Set refresh token in cookies
     const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+      secure: true, // Use secure cookies in production
     };
     return res
       .cookie("accessToken", accessToken, cookieOptions)
