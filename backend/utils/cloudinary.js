@@ -11,7 +11,7 @@ cloudinary.config({
 });
 
 // Upload an image
-export const uploadOnCloudinary = (buffer) => {
+const uploadOnCloudinary = (buffer) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       { folder: 'stayfinder/avatars' },
@@ -25,7 +25,7 @@ export const uploadOnCloudinary = (buffer) => {
   });
 };
 
-export const deleteFromCloudinary = (publicId) => {
+const deleteFromCloudinary = (publicId) => {
   return new Promise((resolve, reject) => {
     cloudinary.uploader.destroy(publicId, (error, result) => {
       if (error) return reject(error);

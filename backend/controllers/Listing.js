@@ -7,7 +7,7 @@ import { isValidObjectId } from "mongoose";
 
 const uploadImages = async (files) => {
   try {
-    const uploadPromises = files.map(file => uploadBufferToCloudinary(file.buffer));
+    const uploadPromises = files.map(file => uploadOnCloudinary(file.buffer));
     const uploadedResults = await Promise.all(uploadPromises);
     return uploadedResults.map(img => img.secure_url);
   } catch (err) {
@@ -26,7 +26,7 @@ const deleteImages = async (images) => {
       return publicId;
     });
 
-    const deletePromises = publicIds.map(id => cloudinary.uploader.destroy(id));
+    const deletePromises = publicIds.map(id => deleteFromCloudinary(id));
     await Promise.all(deletePromises);
   } catch (err) {
     console.error("Image deletion error:", err.message);

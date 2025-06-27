@@ -70,7 +70,7 @@ function Header({ setQuery }) {
               onMouseLeave={() => setShowMenu(false)}
             >
               <button
-                className="flex items-center space-x-2 border border-gray-300 rounded-full p-2 hover:shadow-md transition-shadow"
+                className="flex items-center space-x-2 border border-gray-300 rounded-full md:p-2 hover:shadow-md transition-shadow justify-center gap-2"
                 disabled={loading}
               >
                 <Menu size={28} className="text-gray-400 hidden md:block" />
