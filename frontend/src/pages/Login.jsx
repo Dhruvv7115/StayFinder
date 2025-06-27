@@ -76,7 +76,7 @@ function Login() {
           <p>
             Don't have an account? 
             <Link 
-            to="/signup" className="text-rose-500 hover:underline">Signup</Link>
+            to="/user-signup" className="text-rose-500 hover:underline">Signup</Link>
           </p>
         </div>
       </div>
