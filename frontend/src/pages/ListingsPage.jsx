@@ -48,7 +48,7 @@ function ListingsPage({ query }) {
   }
 
   return (
-    <main className="py-4 px-32 flex flex-col gap-4">    
+    <main className="py-4 md:px-32 px-4 flex flex-col gap-4">    
       <section className="p-6 bg-gray-50 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {properties.length > 0 ? (
           properties.map((listing, index) => (

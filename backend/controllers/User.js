@@ -249,6 +249,7 @@ const loginUser = async (req, res) => {
     const cookieOptions = {
       httpOnly: true,
       secure: true, // Use secure cookies in production
+      sameSite: "none",
     };
     return res
       .cookie("accessToken", accessToken, cookieOptions)
