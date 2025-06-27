@@ -49,7 +49,7 @@ const api = {
 
   // User APIs
   getCurrentUser: async () => {
-    const response = await fetch(`${API_BASE}/api/v1/users/profile/`, {
+    const response = await fetch(`${API_BASE}/users/profile/`, {
       headers: { 'Content-Type': 'application/json' },
       credentials: "include"
     })
