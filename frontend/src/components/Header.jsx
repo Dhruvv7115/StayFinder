@@ -59,7 +59,7 @@ function Header({ setQuery }) {
           <div className="flex items-center space-x-4">
             <button 
               onClick={() => navigate('/host-signup')}
-              className="text-sm font-medium cursor-pointer text-gray-600 hover:text-gray-950"
+              className="text-sm font-medium cursor-pointer text-gray-600 hover:text-gray-950 hidden lg:block"
             >
               Become a Host
             </button>
@@ -73,7 +73,7 @@ function Header({ setQuery }) {
                 className="flex items-center space-x-2 border border-gray-300 rounded-full p-2 hover:shadow-md transition-shadow"
                 disabled={loading}
               >
-                <Menu size={28} className="text-gray-400" />
+                <Menu size={28} className="text-gray-400 hidden md:block" />
                 {user?.avatar ? (
                   <img src={user.avatar} alt="User avatar" className="w-10 h-10 rounded-full"/>
                 ) : (
