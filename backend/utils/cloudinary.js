@@ -1,5 +1,5 @@
 import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
+import streamifier from "streamifier"
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -11,28 +11,27 @@ cloudinary.config({
 });
 
 // Upload an image
-const uploadOnCloudinary = async (localFilePath) => {
-  try {
-    if (!localFilePath) return null;
-    const response = await cloudinary.uploader.upload(localFilePath);
-    // console.log("file uploaded to cloudinary. File src: ", response.url);
-    fs.unlinkSync(localFilePath); // Delete the file from local storage after upload
-    return response;
-  } catch (error) {
-    console.error("Error uploading to Cloudinary:", error);
-    fs.unlinkSync(localFilePath); // Delete the file from local storage if upload fails
-    return null;
-  }
+export const uploadOnCloudinary = (buffer) => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: 'stayfinder/avatars' },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      }
+    );
+
+    streamifier.createReadStream(buffer).pipe(stream);
+  });
 };
 
-const deleteFromCloudinary = async (publicId) => {
-  try {
-    const response = await cloudinary.uploader.destroy(publicId);
-    return response;
-  } catch (error) {
-    console.error("Error deleting from Cloudinary:", error);
-    return null;
-  }
+export const deleteFromCloudinary = (publicId) => {
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader.destroy(publicId, (error, result) => {
+      if (error) return reject(error);
+      resolve(result);
+    });
+  });
 };
 
 export { uploadOnCloudinary, deleteFromCloudinary };

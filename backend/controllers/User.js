@@ -146,14 +146,14 @@ const registerUser = async (req, res) => {
         message: "User already exists with this email",
       });
     }
-    // Extract avatar image path from req.files
-    const avatarLocalPath = req.file?.path;
+    // Extract avatar image buffer from req.files
+    const avatarBuffer = req.file?.buffer;
 
     let newUser;
-    if (avatarLocalPath) {
+    if (avatarBuffer) {
       let avatar;
       try {
-        avatar = await uploadOnCloudinary(avatarLocalPath);
+        avatar = await uploadOnCloudinary(avatarBuffer);
       } catch (error) {
         console.error("Error uploading avatar to Cloudinary:", error.message);
         return res.status(500).json({
@@ -488,67 +488,68 @@ const updateUserPassword = async (req, res) => {
   }
 };
 
+
 const updateUserAvatar = async (req, res) => {
   console.log("=== Avatar Upload Debug ===");
   console.log("req.file:", req.file);
-  console.log("req.body:", req.body);
   console.log("req.user:", req.user);
   console.log("========================");
+
   try {
     const user = await User.findById(req.user._id);
     if (!user) {
-      console.error("User not found");
       return res.status(404).json({
         status: "FAILED",
         message: "User not found",
       });
     }
-    // Check if an avatar file is provided
-    if (!req.file) {
-      console.error("Avatar file not found");
+
+    if (!req.file || !req.file.buffer) {
       return res.status(400).json({
         status: "FAILED",
         message: "Avatar file is required",
       });
     }
-    // Upload the new avatar to Cloudinary
-    let avatar;
-    try {
-      if (user.avatar) {
-        // If the user already has an avatar, delete the old one from Cloudinary
-        const publicId = user.avatar.split("/").pop().split(".")[0]; // Extract public ID from URL
-        await deleteFromCloudinary(publicId);
+
+    // Delete old avatar if exists
+    if (user.avatar) {
+      const publicId = user.avatar
+        .split("/")
+        .pop()
+        .split(".")[0]; // Extract ID from URL
+      try {
+        await deleteFromCloudinary(`avatars/${publicId}`);
+      } catch (err) {
+        console.error("Error deleting old avatar:", err.message);
       }
-      avatar = await uploadOnCloudinary(req.file.path);
-    } catch (error) {
-      console.error("Error uploading avatar to Cloudinary:", error);
+    }
+
+    // Upload buffer to Cloudinary
+    let avatarUploadResult;
+    try {
+      avatarUploadResult = await uploadOnCloudinary(req.file.buffer);
+    } catch (uploadError) {
       return res.status(500).json({
         status: "FAILED",
-        message: "Error uploading avatar image",
-        error: error.message,
+        message: "Error uploading avatar",
+        error: uploadError.message,
       });
     }
-    // Update the user's avatar
-    user.avatar = avatar?.secure_url;
+
+    user.avatar = avatarUploadResult.secure_url;
     await user.save();
-    // Return the updated user profile
+
     const updatedUser = await User.findById(req.user._id).select(
       "-password -refreshToken"
     );
-    if (!updatedUser) {
-      console.log("User not found after updating");
-      return res.status(404).json({
-        status: "FAILED",
-        message: "User not found after update",
-      });
-    }
+
     return res.status(200).json({
       status: "SUCCESS",
       message: "User avatar updated successfully",
       user: updatedUser,
     });
   } catch (error) {
-    console.error("Error updating user avatar:", error);
+    console.log("Error updating user's avatar")
     return res.status(500).json({
       status: "FAILED",
       message: "Internal server error",
@@ -556,6 +557,7 @@ const updateUserAvatar = async (req, res) => {
     });
   }
 };
+
 
 export {
   registerUser,

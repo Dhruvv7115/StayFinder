@@ -5,30 +5,32 @@ import {
 } from "../utils/cloudinary.js";
 import { isValidObjectId } from "mongoose";
 
-const uploadImages = async (images) => {
+const uploadImages = async (files) => {
   try {
-    const uploadPromises = images.map((image) => uploadOnCloudinary(image));
-    const uploadedImages = await Promise.all(uploadPromises);
-    return uploadedImages.map((image) => image.secure_url); // Assuming uploadOnCloudinary returns an object with secure_url
-  } catch (error) {
-    console.error("Error uploading images:", error);
-    throw new Error("Failed to upload images");
+    const uploadPromises = files.map(file => uploadBufferToCloudinary(file.buffer));
+    const uploadedResults = await Promise.all(uploadPromises);
+    return uploadedResults.map(img => img.secure_url);
+  } catch (err) {
+    console.error("Image upload error:", err.message);
+    throw new Error("Failed to upload images to Cloudinary");
   }
 };
+
+// Delete existing images from Cloudinary
 const deleteImages = async (images) => {
   try {
-    const oldImages = images.map((image) => {
-      const parts = image.split("/");
-      const publicId = parts[parts.length - 1].split(".")[0]; // Extract public ID from the URL
+    const publicIds = images.map((url) => {
+      const parts = url.split("/");
+      const fileName = parts[parts.length - 1];
+      const publicId = `listings/${fileName.split(".")[0]}`; // include folder
       return publicId;
     });
-    const deletePromises = oldImages.map((image) =>
-      deleteFromCloudinary(image)
-    );
+
+    const deletePromises = publicIds.map(id => cloudinary.uploader.destroy(id));
     await Promise.all(deletePromises);
-  } catch (error) {
-    console.error("Error deleting images:", error);
-    throw new Error("Failed to delete images");
+  } catch (err) {
+    console.error("Image deletion error:", err.message);
+    throw new Error("Failed to delete previous images");
   }
 };
 
@@ -45,23 +47,25 @@ const createListing = async (req, res) => {
       !listingData.type
     ) {
       return res.status(400).json({
+        status: "FAILED",
         message:
-          "Address, description, price, bedrooms, bathrooms and type of listing is required.",
+          "Address, description, price, bedrooms, bathrooms, and type are required.",
       });
     }
-    const images = req.files.map((file) => file.path); // Assuming images are uploaded and stored in req.files
-    if (images.length === 0) {
+
+    if (!req.files || req.files.length === 0) {
       return res.status(400).json({
         status: "FAILED",
         message: "At least one image is required.",
       });
     }
-    const imagesUploaded = await uploadImages(images);
+
+    const imageUrls = await uploadImages(req.files);
 
     const newListing = await Listing.create({
       ...listingData,
-      images: imagesUploaded, // Assuming images are uploaded and stored in req.files
-      owner: req.user._id, // Assuming user ID is available in req.user
+      images: imageUrls,
+      owner: req.user._id,
     });
 
     return res.status(201).json({
@@ -202,41 +206,40 @@ const getAllListingsOfUser = async (req, res) => {
 const updateListing = async (req, res) => {
   const { id } = req.params;
   const listingData = req.body;
-  console.log("Update request received:");
-  console.log("ID:", id);
+
+  console.log("=== Update Listing Debug ===");
+  console.log("Listing ID:", id);
   console.log("Body:", listingData);
   console.log("Files:", req.files);
 
   try {
     if (!isValidObjectId(id)) {
-      console.log("Invalid listing id.");
       return res.status(400).json({
         status: "FAILED",
-        message: "Invalid listing id.",
+        message: "Invalid listing ID",
       });
     }
-    let listing = await Listing.findById(id);
 
+    let listing = await Listing.findById(id);
     if (!listing) {
-      console.log("Listing not found.");
       return res.status(404).json({
+        status: "FAILED",
         message: "Listing not found",
       });
     }
 
+    // If new images provided, delete old ones and upload new
     if (req.files && req.files.length > 0) {
-      const previousImages = listing.images || [];
-      // Remove previous images from cloud storage
-      if (previousImages.length > 0) {
-        await deleteImages(previousImages);
+      if (listing.images && listing.images.length > 0) {
+        await deleteImages(listing.images);
       }
-      // Upload new images
-      const images = req.files.map((file) => file.path);
-      const imagesUploaded = await uploadImages(images);
-      listing.images = imagesUploaded;
+
+      const newImages = await uploadImages(req.files);
+      listing.images = newImages;
     }
 
-    listing = await Listing.findByIdAndUpdate(id, listingData, { new: true });
+    // Update listing data
+    listing = await Listing.findByIdAndUpdate(id, { ...listingData, images: listing.images }, { new: true });
 
     const updatedListing = await Listing.findById(id)
       .populate("owner", "-_id name avatar")
@@ -248,7 +251,7 @@ const updateListing = async (req, res) => {
       updatedListing,
     });
   } catch (error) {
-    console.error("Error: ", error.message);
+    console.error("Error updating listing:", error.message);
     return res.status(500).json({
       status: "FAILED",
       message: "Error updating listing",
