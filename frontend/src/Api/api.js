@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8000/api/v1';
+const API_BASE = 'https://stayfinder-production-8233.up.railway.app/api/v1';
 
 const api = {
   // Auth APIs
@@ -49,7 +49,7 @@ const api = {
 
   // User APIs
   getCurrentUser: async () => {
-    const response = await fetch(`http://localhost:8000/api/v1/users/profile/`, {
+    const response = await fetch(`${API_BASE}/api/v1/users/profile/`, {
       headers: { 'Content-Type': 'application/json' },
       credentials: "include"
     })
