@@ -8,7 +8,7 @@ function SearchBar({ setQuery }) {
       limit: 20,
       query: searchQuery,
       sortBy: "price",
-      sortType: "desc",
+      sortType: "desc", 
     });
   }
   return (
