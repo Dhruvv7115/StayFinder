@@ -1,4 +1,4 @@
-const API_BASE = 'https://stayfinder-production-8233.up.railway.app/api/v1';
+const API_BASE = 'https://stay-finder-6g0f.onrender.com/api/v1';
 
 const api = {
   // Auth APIs
