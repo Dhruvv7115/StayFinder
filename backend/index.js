@@ -29,7 +29,7 @@ app.use("/api/v1/listings", listingRouter);
 app.use("/api/v1/bookings", bookingRouter);
 app.use("/api/v1/favourites", favouriteRouter);
 
-app.get((req, res) => {
+app.get("/", (req, res) => {
   res.send("api is running...");
 });
 
